@@ -1,6 +1,9 @@
 import React from 'react';
 import fetch from 'isomorphic-fetch';
-import Questions from './Questions.jsx';
+// need to figure out based on new approach, buttons for catagories
+// correctly setting the question used in quiz and then making sure to calcuate 
+// the right/wrong based on the quiz answer'd questions. Do not think 'step' field 
+// is needed at but left just in case.  
 
 
 export default class App extends React.Component {
@@ -9,10 +12,10 @@ export default class App extends React.Component {
 		super(props);
 		this.state = {
 			title: null,
-			catagories: '',
-			user_answers: [],
-			displayQuestions: true
-
+			quiz: {},
+			displayCatagories: true,
+			categoriesList: '',
+			step: 0
 		}
 	}
 
@@ -26,39 +29,33 @@ export default class App extends React.Component {
 
 
 	render() {
-		console.log('App render!');
 
-		if (this.state.catagories.length > 0) {
-			if (this.state.displayQuestions) {
-
-				const questionPg = this.state.catagories.map(val =>
-					<Questions key={val.id} >
-						<button className="circleQ"
-								style={{backgroundColor: val.color} }
-								onClick={() => this.questionPicked(val)}>{val.subject}</button>
-					</Questions>
-				)
+		if (this.state.quiz.length > 0) {
 
 				return (
-					<div>
-						<div className="header">{this.state.title}</div>
-						<div className="content"> {questionPg}</div>
-					</div>
-				)
+							<div>
+								<div> <h1> display header here </h1> </div>
+								<div>
+								  <p> this will display the catagories page </p>				
+								</div>
+							</div>				
+							)
 			} else {
-				debugger
-				return (
-					<div>
-						<div className="header">{this.state.title}</div>
-						<div className="content">  Display Quiz Here :) </div>
-					</div>
-				)
+
+						return (
+							<div>
+								<div> <h1> display header here </h1> </div>
+								<div>
+								  <p> this will display the questions and answers page </p>				
+								</div>
+							</div>
+						)
+					}
+				}
 			}
-		}else{
-			return (<h1>loading page...</h1>)
+		} else {
+			return (<h1>loading page...this means that mounting is having an issue</h1>)
 		}
-
-
 
 
 	}
@@ -69,39 +66,33 @@ export default class App extends React.Component {
 		fetch('../src/lib/fake_api.json')
 			.then(responseData => responseData.json())
 			.then(responseData => {
+			 
+				let ctr = 0;
+				let catagoryQuestion = '';
 
-				const qz = responseData[0].categories.map( val =>
-					{return {
-						subject: val.subject,
-						color: val.color,
-						questions: val.questions
-					}
-					}
-				);
+				const mapCategoriesList = responseData[0].categories.map(val => {
 
-				//set state
+					for (var i = 0; i < val.questions.length; i++) {
+						catagoryQuestion = {
+							id: val.questions[i].id,
+							subject: val.subject,
+							color: val.color,
+							question: val.questions[i].question_text,
+							possibleAnswers: val.questions[i].choices,
+							questionCompleted: false
+						}
+						self.state.quiz[ctr] = catagoryQuestion;
+						ctr ++;
+					}
+					return {
+						subject: val.subject
+					}
+				});
 				self.setState({
 					title: responseData[0].name,
-					catagories: qz,
-					step: 0
+					categoriesList: mapCategoriesList
 
-				});
+				})
 			});
-
-
 	}
-
-	questionPicked = (data) => {
-		console.log('in question picked');
-		debugger;
-		this.setState({
-			...data,
-			selectedQuestion: data.id,
-			displayQuestions: false
-		});
-	}
-
-
-
-
 }
